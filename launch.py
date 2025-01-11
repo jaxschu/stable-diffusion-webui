@@ -2,8 +2,30 @@ from modules import launch_utils
 from transformers import CLIPProcessor, CLIPModel
 import os
 os.environ['CURL_CA_BUNDLE'] = ''
-os.environ["HTTP_PROXY"] = ""
-os.environ["HTTPS_PROXY"] = ""
+os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
+os.environ["HTTPS_PROXY"] = "https://127.0.0.1:7890"
+
+import requests
+
+# 示例请求
+try:
+    # 示例请求
+    response = requests.get('https://huggingface.co/openai/clip-vit-large-patch14/resolve/main/vocab.json')
+    response.raise_for_status()  # 检查请求是否成功
+    with open('vocab.json', 'w', encoding='utf-8') as f:
+        f.write(response.text)
+    print("文件下载成功")
+except requests.exceptions.RequestException as e:
+    print(f"请求失败: {e}")
+
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+session = requests.Session()
+retry = Retry(connect=5, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
 
 
 # ========== CLIP模型加载 ========== #
